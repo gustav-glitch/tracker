@@ -1,0 +1,23 @@
+ntfy:
+  server: https://ntfy.sh
+  # Replace with your own unguessable topic, e.g. tracker-3f9a-d2b1
+  defaultTopic: tracker-CHANGE-ME
+
+trackers:
+  # --- Example: Norwegian retailer with text-match ---
+  - id: example-retailer
+    name: Example product on a Norwegian retailer
+    url: https://www.example.no/produkt/123
+    strategy: text-match
+    enabled: false
+    with:
+      selector: ".product-availability, .stock-status"
+      inStockPattern: "på lager|kjøp|legg i handlekurv"
+      outOfStockPattern: "utsolgt|ikke på lager|ikke tilgjengelig"
+
+  # --- Example: Shopify-based TCG seller ---
+  - id: example-shopify
+    name: Example product on a Shopify storefront
+    url: https://example-shop.no/products/some-pokemon-product
+    strategy: shopify-json
+    enabled: false
