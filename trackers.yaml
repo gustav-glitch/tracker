@@ -1,15 +1,104 @@
 ntfy:
   server: https://ntfy.sh
-  # Replace with your own unguessable topic, e.g. tracker-3f9a-d2b1
   defaultTopic: tracker-acb1b652
-
 trackers:
   - id: norli-pokemon-etb-me04
-    name: "Norli — Pokémon Elite Trainer Box ME04"
-    url: https://www.norli.no/leker/kreative-leker/samlekort/pokemonkort/pokemon-elite-trainer-box-me04-0196214139954
+    name: Norli — Pokémon Elite Trainer Box ME04
+    url: >-
+      https://www.norli.no/leker/kreative-leker/samlekort/pokemonkort/pokemon-elite-trainer-box-me04-0196214139954
     strategy: magento-graphql
     enabled: true
     cooldownMinutes: 60
     with:
       graphqlUrl: https://checkout.norli.no/graphql
       urlKey: pokemon-elite-trainer-box-me04-0196214139954
+  - id: ringo-pokemon-premium-poster-coll-me02-5-ascended-heroes
+    name: Ringo — Pokemon Premium Poster Coll Me02 5 Ascended Heroes
+    url: >-
+      https://www.ringo.no/produkt/pokemon-premium-poster-coll-me02-5-ascended-heroes/
+    cooldownMinutes: 360
+    enabled: true
+    strategy: text-match
+    with:
+      inStockPattern: på lager|kjøp|legg i handlekurv|add to cart
+      outOfStockPattern: utsolgt|ikke på lager|ikke tilgjengelig|out of stock
+      flags: i
+  - id: nille-pokemon-mega-evolution-25-gaveeske-87ce1960
+    name: Nille — Pokemon Mega Evolution 25 Gaveeske 87ce1960
+    url: >-
+      https://www.nille.no/produkter/barnerom-og-leker/spill/pokemon-mega-evolution-25-gaveeske-87ce1960/
+    cooldownMinutes: 360
+    enabled: true
+    strategy: text-match
+    with:
+      inStockPattern: på lager|kjøp|legg i handlekurv|add to cart
+      outOfStockPattern: utsolgt|ikke på lager|ikke tilgjengelig|out of stock
+      flags: i
+  - id: cardcenter-pokemon-pitch-black-elite-trainer-box
+    name: Cardcenter — Pokemon Pitch Black Elite Trainer Box
+    url: https://cardcenter.no/products/pokemon-pitch-black-elite-trainer-box
+    cooldownMinutes: 360
+    enabled: true
+    strategy: shopify-json
+    with: {}
+  - id: cardcenter-pokemon-ascended-heroes-booster-bundle
+    name: Cardcenter — Pokemon Ascended Heroes Booster Bundle
+    url: https://cardcenter.no/products/pokemon-ascended-heroes-booster-bundle
+    cooldownMinutes: 360
+    enabled: true
+    strategy: shopify-json
+    with: {}
+  - id: ringo-pokemon-enhanced-2p-blister-me02-5-ascended-heroes
+    name: Ringo — Pokemon Enhanced 2p Blister Me02 5 Ascended Heroes
+    url: >-
+      https://www.ringo.no/produkt/pokemon-enhanced-2p-blister-me02-5-ascended-heroes/
+    cooldownMinutes: 360
+    enabled: true
+    strategy: text-match
+    with:
+      inStockPattern: på lager|kjøp|legg i handlekurv|add to cart
+      outOfStockPattern: utsolgt|ikke på lager|ikke tilgjengelig|out of stock
+      flags: i
+  - id: ringo-pokemon-deluxe-pin-coll-me02-5-ascended-heroes
+    name: Ringo — Pokemon Deluxe Pin Coll Me02 5 Ascended Heroes
+    url: >-
+      https://www.ringo.no/produkt/pokemon-deluxe-pin-coll-me02-5-ascended-heroes/
+    cooldownMinutes: 360
+    enabled: true
+    strategy: text-match
+    with:
+      inStockPattern: på lager|kjøp|legg i handlekurv|add to cart
+      outOfStockPattern: utsolgt|ikke på lager|ikke tilgjengelig|out of stock
+      flags: i
+  - id: norli-pokemon-ex-box-2-me02-5-0196214131972
+    name: Norli — Pokemon Ex Box 2 Me02 5
+    url: >-
+      https://www.norli.no/leker/kreative-leker/samlekort/pokemonkort/pokemon-ex-box-2-me02-5-0196214131972
+    cooldownMinutes: 360
+    enabled: true
+    strategy: magento-graphql
+    with:
+      graphqlUrl: https://checkout.norli.no/graphql
+      urlKey: pokemon-ex-box-2-me02-5-0196214131972
+  - id: sprell-pok-c3-a9mon-ascended-heroes-ex-box-velg-mellom-3-for
+    name: Sprell — Pok%C3%A9mon Ascended Heroes Ex Box   Velg Mellom
+    url: >-
+      https://www.sprell.no/product/pokémon-ascended-heroes-ex-box---velg-mellom-3-forskjellige--196214131972_no?code=196214131972
+    cooldownMinutes: 360
+    enabled: true
+    strategy: text-match
+    with:
+      inStockPattern: på lager|kjøp|legg i handlekurv|add to cart
+      outOfStockPattern: utsolgt|ikke på lager|ikke tilgjengelig|out of stock
+      flags: i
+  - id: proshop-3447587
+    name: Proshop — 3447587
+    url: >-
+      https://www.proshop.no/Pokemon/Pokemon-TCG-Ascended-Heroes-Mega-Emboar-ex-Box-Mega-Evolution/3447587
+    cooldownMinutes: 360
+    enabled: true
+    strategy: text-match
+    with:
+      inStockPattern: på lager|kjøp|legg i handlekurv|add to cart
+      outOfStockPattern: utsolgt|ikke på lager|ikke tilgjengelig|out of stock
+      flags: i

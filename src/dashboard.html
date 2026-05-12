@@ -66,7 +66,7 @@
       background: var(--panel);
       border: 1px solid var(--line);
       border-radius: 8px;
-      padding: 7px 12px;
+      padding: 10px 14px;
       color: var(--ink);
       outline: none;
       width: 100%;
@@ -147,74 +147,28 @@
       <div style="font-weight:600;margin-bottom:16px;">Add tracker</div>
       <div style="display:flex;flex-direction:column;gap:12px;">
 
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-          <div>
-            <div style="font-size:12px;color:var(--muted);margin-bottom:4px;">ID <span style="color:var(--line);">— lowercase, dashes</span></div>
-            <input id="f-id" type="text" placeholder="norli-etb-2025">
-          </div>
-          <div>
-            <div style="font-size:12px;color:var(--muted);margin-bottom:4px;">Name</div>
-            <input id="f-name" type="text" placeholder="Norli — ETB 2025">
-          </div>
-        </div>
-
         <div>
           <div style="font-size:12px;color:var(--muted);margin-bottom:4px;">URL</div>
           <input id="f-url" type="url" placeholder="https://..." oninput="autoDetect(this.value)">
         </div>
 
-        <div>
-          <div style="font-size:12px;color:var(--muted);margin-bottom:4px;">Strategy</div>
-          <select id="f-strategy" onchange="updateStrategyFields()">
-            <option value="magento-graphql">magento-graphql — Norli and other Magento stores</option>
-            <option value="shopify-json">shopify-json — Shopify storefronts</option>
-            <option value="text-match">text-match — most retailers</option>
-            <option value="selector-presence">selector-presence — button appears when in stock</option>
-            <option value="selector-absence">selector-absence — sold-out badge disappears</option>
-          </select>
-        </div>
-
-        <div id="fields-magento-graphql" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
           <div>
-            <div style="font-size:12px;color:var(--muted);margin-bottom:4px;">GraphQL URL</div>
-            <input id="f-graphqlUrl" type="url" placeholder="https://checkout.example.no/graphql">
+            <div style="font-size:12px;color:var(--muted);margin-bottom:4px;">Name</div>
+            <input id="f-name" type="text" placeholder="Norli — ETB 2025">
           </div>
-          <div>
-            <div style="font-size:12px;color:var(--muted);margin-bottom:4px;">URL key <span style="color:var(--line);">— last path segment</span></div>
-            <input id="f-urlKey" type="text" placeholder="product-slug">
-          </div>
-        </div>
-
-        <div id="fields-text-match" style="display:none;flex-direction:column;gap:12px;">
-          <div>
-            <div style="font-size:12px;color:var(--muted);margin-bottom:4px;">CSS selector <span style="color:var(--line);">— optional, scopes the search</span></div>
-            <input id="f-selector-tm" type="text" placeholder=".stock-status">
-          </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-            <div>
-              <div style="font-size:12px;color:var(--muted);margin-bottom:4px;">In-stock pattern</div>
-              <input id="f-inStockPattern" type="text" placeholder="på lager|kjøp">
-            </div>
-            <div>
-              <div style="font-size:12px;color:var(--muted);margin-bottom:4px;">Out-of-stock pattern</div>
-              <input id="f-outOfStockPattern" type="text" placeholder="utsolgt|ikke på lager">
-            </div>
+          <div style="display:flex;flex-direction:column;justify-content:flex-end;">
+            <div id="detected-badge" style="display:none;font-size:12px;color:var(--soft);padding:10px 14px;background:var(--track);border-radius:8px;border:1px solid var(--line);"></div>
           </div>
         </div>
 
-        <div id="fields-selector-presence" style="display:none;">
-          <div style="font-size:12px;color:var(--muted);margin-bottom:4px;">CSS selector <span style="color:var(--line);">— in-stock when present</span></div>
-          <input id="f-selector-sp" type="text" placeholder="button.add-to-cart">
-        </div>
-
-        <div id="fields-selector-absence" style="display:none;">
-          <div style="font-size:12px;color:var(--muted);margin-bottom:4px;">CSS selector <span style="color:var(--line);">— in-stock when absent</span></div>
-          <input id="f-selector-sa" type="text" placeholder=".sold-out">
-        </div>
-
-        <div id="fields-shopify-json" style="display:none;">
-          <div style="font-size:12px;color:var(--muted);">No extra config needed — the product JSON URL is derived from the product URL automatically.</div>
-        </div>
+        <!-- hidden technical fields, filled by autoDetect -->
+        <input id="f-id" type="hidden">
+        <input id="f-strategy" type="hidden" value="text-match">
+        <input id="f-graphqlUrl" type="hidden">
+        <input id="f-urlKey" type="hidden">
+        <input id="f-inStockPattern" type="hidden" value="på lager|kjøp|legg i handlekurv|add to cart">
+        <input id="f-outOfStockPattern" type="hidden" value="utsolgt|ikke på lager|ikke tilgjengelig|out of stock">
 
         <div style="display:flex;align-items:center;justify-content:space-between;padding-top:4px;">
           <div id="form-error" style="font-size:12px;color:#dc2626;"></div>
@@ -239,11 +193,12 @@
 
       <div id="trackers-table" style="background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-top:16px;">
         <!-- header -->
-        <div style="display:grid;grid-template-columns:minmax(260px,1.7fr) 0.7fr 0.7fr minmax(140px,0.9fr);gap:16px;padding:10px 16px;border-bottom:1px solid var(--line);">
+        <div style="display:grid;grid-template-columns:minmax(260px,1.7fr) 0.7fr 0.7fr minmax(140px,0.9fr) 32px;gap:16px;padding:10px 16px;border-bottom:1px solid var(--line);">
           <span class="section-label">Product</span>
           <span class="section-label" style="text-align:right;">Last checked</span>
           <span class="section-label" style="text-align:right;">Since</span>
           <span class="section-label" style="text-align:right;">Status</span>
+          <span></span>
         </div>
         <div id="trackers"></div>
       </div>
@@ -311,13 +266,16 @@ function renderTrackers(trackers, running) {
     return;
   }
   el.innerHTML = trackers.map((t, i) => {
+    const hasState = !!t.state;
     const signal = t.state?.lastSignal ?? 'unknown';
-    const checked = timeAgo(t.state?.lastCheckedAt);
-    const since = timeAgo(t.state?.lastSignalAt);
+    const checked = hasState ? timeAgo(t.state?.lastCheckedAt) : '—';
+    const since = hasState ? timeAgo(t.state?.lastSignalAt) : '—';
     const border = i > 0 ? 'border-top:1px solid var(--line);' : '';
     const dim = !t.enabled ? 'opacity:0.5;' : '';
+    const safeId = t.id.replace(/'/g, "\\'");
+    const safeName = t.name.replace(/'/g, "\\'");
     return `
-    <div style="display:grid;grid-template-columns:minmax(260px,1.7fr) 0.7fr 0.7fr minmax(140px,0.9fr);gap:16px;padding:11px 16px;${border}${dim}transition:background .1s;cursor:default;"
+    <div style="display:grid;grid-template-columns:minmax(260px,1.7fr) 0.7fr 0.7fr minmax(140px,0.9fr) 32px;gap:16px;padding:11px 16px;${border}${dim}transition:background .1s;cursor:default;position:relative;"
       onmouseover="this.style.background='var(--track)'" onmouseout="this.style.background=''">
       <div style="min-width:0;">
         <div style="display:flex;align-items:center;gap:6px;">
@@ -331,12 +289,19 @@ function renderTrackers(trackers, running) {
       </div>
       <div style="text-align:right;font-size:13px;color:var(--soft);align-self:center;">${checked}</div>
       <div style="text-align:right;font-size:13px;color:var(--soft);align-self:center;">${t.state ? since : '—'}</div>
-      <div style="text-align:right;align-self:center;display:flex;align-items:center;justify-content:flex-end;gap:6px;">
-        <button class="btn-ghost" onclick="toggleTracker('${t.id}')" title="${t.enabled ? 'Pause' : 'Resume'}">${t.enabled ? 'Pause' : 'Resume'}</button>
-        <button class="btn-ghost danger" onclick="removeTracker('${t.id}', '${t.name.replace(/'/g, "\\'")}')">Remove</button>
-        <span class="signal-badge badge-${signal}">
-          ${signalLabel(signal)}
-        </span>
+      <div style="text-align:right;align-self:center;">
+        ${!hasState
+          ? `<span class="signal-badge" style="border-color:var(--line);color:var(--muted);background:var(--track);">Pending…</span>`
+          : `<span class="signal-badge badge-${signal}">${signalLabel(signal)}</span>`
+        }
+      </div>
+      <div style="align-self:center;position:relative;">
+        <button class="btn-ghost" onclick="toggleMenu('menu-${safeId}', event)"
+          style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:16px;padding:0;border-radius:6px;">⋯</button>
+        <div id="menu-${safeId}" style="display:none;position:absolute;right:0;top:32px;background:var(--panel);border:1px solid var(--line);border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.08);min-width:130px;z-index:100;overflow:hidden;">
+          <button onclick="toggleTracker('${safeId}')" style="display:block;width:100%;text-align:left;padding:8px 14px;font-size:13px;color:var(--ink);background:none;border:none;cursor:pointer;" onmouseover="this.style.background='var(--track)'" onmouseout="this.style.background=''">${t.enabled ? 'Pause' : 'Resume'}</button>
+          <button onclick="removeTracker('${safeId}','${safeName}')" style="display:block;width:100%;text-align:left;padding:8px 14px;font-size:13px;color:#dc2626;background:none;border:none;cursor:pointer;border-top:1px solid var(--line);" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background=''">Remove</button>
+        </div>
       </div>
     </div>`;
   }).join('');
@@ -391,39 +356,54 @@ function toggleAddForm() {
   f.style.display = showing ? 'none' : 'block';
   document.getElementById('add-btn').textContent = showing ? '+ Add tracker' : '× Cancel';
   document.getElementById('form-error').textContent = '';
+  if (showing) {
+    ['f-id','f-name','f-url','f-graphqlUrl','f-urlKey'].forEach(id => { document.getElementById(id).value = ''; });
+    document.getElementById('detected-badge').style.display = 'none';
+  }
 }
 
-function updateStrategyFields() {
-  const s = document.getElementById('f-strategy').value;
-  ['magento-graphql','text-match','selector-presence','selector-absence','shopify-json'].forEach(id => {
-    const el = document.getElementById('fields-' + id);
-    el.style.display = id === s ? (id === 'text-match' ? 'flex' : 'block') : 'none';
-    if (id === 'text-match') el.style.flexDirection = 'column';
-  });
-}
+// Known Shopify stores (Norwegian TCG / retail)
+const SHOPIFY_DOMAINS = ['cardcenter.no','cardshop.no','playlot.no','pokeplanet.no','kortspesialisten.no'];
 
 function autoDetect(url) {
+  const badge = document.getElementById('detected-badge');
   try {
     const u = new URL(url);
+    const host = u.hostname.replace('www.','');
     const slug = u.pathname.split('/').filter(Boolean).pop() || '';
-    if (!document.getElementById('f-id').value) {
-      document.getElementById('f-id').value = slug.replace(/[^a-z0-9-]/gi, '-').toLowerCase().replace(/-+/g,'-').slice(0,50);
-    }
+
+    // Auto-fill name
     if (!document.getElementById('f-name').value) {
-      const host = u.hostname.replace('www.','');
-      document.getElementById('f-name').value = host.split('.')[0].charAt(0).toUpperCase() + host.split('.')[0].slice(1) + ' — ' + slug.replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase()).slice(0,40);
+      const siteName = host.split('.')[0].charAt(0).toUpperCase() + host.split('.')[0].slice(1);
+      const productName = slug.replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase()).replace(/\s+\d{10,}\s*$/,'').trim().slice(0,50);
+      document.getElementById('f-name').value = siteName + ' — ' + productName;
     }
-    if (u.hostname.includes('norli.no')) {
+
+    // Auto-fill ID
+    document.getElementById('f-id').value = (host.split('.')[0] + '-' + slug).replace(/[^a-z0-9-]/gi,'-').toLowerCase().replace(/-+/g,'-').slice(0,60);
+
+    // Detect strategy
+    if (host.includes('norli.no')) {
       document.getElementById('f-strategy').value = 'magento-graphql';
       document.getElementById('f-graphqlUrl').value = 'https://checkout.norli.no/graphql';
       document.getElementById('f-urlKey').value = slug;
-      updateStrategyFields(); return;
+      badge.style.display = 'block';
+      badge.textContent = '✓ Norli — using Magento API';
+      return;
     }
-    if (u.pathname.includes('/products/')) {
+    if (SHOPIFY_DOMAINS.some(d => host.includes(d)) || u.pathname.includes('/products/')) {
       document.getElementById('f-strategy').value = 'shopify-json';
-      updateStrategyFields(); return;
+      badge.style.display = 'block';
+      badge.textContent = '✓ Shopify store — using product JSON';
+      return;
     }
-  } catch {}
+    // Default: text-match with Norwegian patterns
+    document.getElementById('f-strategy').value = 'text-match';
+    badge.style.display = 'block';
+    badge.textContent = '✓ Standard retailer — scanning for stock text';
+  } catch {
+    badge.style.display = 'none';
+  }
 }
 
 async function addTracker() {
@@ -434,19 +414,36 @@ async function addTracker() {
   const errEl = document.getElementById('form-error');
   errEl.textContent = '';
 
-  let withData = {};
-  if (strategy === 'magento-graphql') withData = { graphqlUrl: document.getElementById('f-graphqlUrl').value.trim(), urlKey: document.getElementById('f-urlKey').value.trim() };
-  else if (strategy === 'text-match') withData = { selector: document.getElementById('f-selector-tm').value.trim()||undefined, inStockPattern: document.getElementById('f-inStockPattern').value.trim()||undefined, outOfStockPattern: document.getElementById('f-outOfStockPattern').value.trim()||undefined, flags:'i' };
-  else if (strategy === 'selector-presence') withData = { selector: document.getElementById('f-selector-sp').value.trim() };
-  else if (strategy === 'selector-absence') withData = { selector: document.getElementById('f-selector-sa').value.trim() };
+  if (!url) { errEl.textContent = 'URL is required.'; return; }
+  if (!name) { errEl.textContent = 'Name is required.'; return; }
 
-  const res = await fetch('/api/trackers', { method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({id,name,url,strategy,with:withData,enabled:true}) }).then(r=>r.json());
+  // Re-run autoDetect to make sure all hidden fields are populated
+  autoDetect(url);
+
+  let withData = {};
+  if (strategy === 'magento-graphql') {
+    withData = { graphqlUrl: document.getElementById('f-graphqlUrl').value.trim(), urlKey: document.getElementById('f-urlKey').value.trim() };
+  } else if (strategy === 'shopify-json') {
+    withData = {};
+  } else {
+    // text-match default
+    withData = { inStockPattern: document.getElementById('f-inStockPattern').value.trim() || undefined, outOfStockPattern: document.getElementById('f-outOfStockPattern').value.trim() || undefined, flags: 'i' };
+  }
+
+  const res = await fetch('/api/trackers', {
+    method:'POST', headers:{'content-type':'application/json'},
+    body: JSON.stringify({ id, name, url, strategy, with: withData, enabled: true })
+  }).then(r => r.json());
+
   if (res.error) { errEl.textContent = res.error; return; }
 
-  // reset form
-  ['f-id','f-name','f-url','f-graphqlUrl','f-urlKey','f-selector-tm','f-inStockPattern','f-outOfStockPattern','f-selector-sp','f-selector-sa'].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
+  // reset
+  ['f-id','f-name','f-url','f-graphqlUrl','f-urlKey'].forEach(fid => { document.getElementById(fid).value = ''; });
+  document.getElementById('detected-badge').style.display = 'none';
   toggleAddForm();
-  fetchStatus();
+  await fetchStatus();
+  showToast('Tracker added — running first check…');
+  await runNow();
 }
 
 async function toggleTracker(id) {
@@ -459,6 +456,39 @@ async function removeTracker(id, name) {
   await fetch(`/api/trackers/${id}`, { method:'DELETE' });
   fetchStatus();
 }
+
+function showToast(msg) {
+  let t = document.getElementById('toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'toast';
+    t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;font-size:13px;padding:10px 20px;border-radius:8px;z-index:999;opacity:0;transition:opacity .2s;pointer-events:none;';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.opacity = '1';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.style.opacity = '0', 3000);
+}
+
+function toggleMenu(id, e) {
+  e.stopPropagation();
+  document.querySelectorAll('[id^="menu-"]').forEach(m => { if (m.id !== id) m.style.display = 'none'; });
+  const m = document.getElementById(id);
+  if (m.style.display === 'none') {
+    const rect = e.currentTarget.getBoundingClientRect();
+    m.style.position = 'fixed';
+    m.style.top = (rect.bottom + 4) + 'px';
+    m.style.right = (window.innerWidth - rect.right) + 'px';
+    m.style.left = 'auto';
+    m.style.display = 'block';
+  } else {
+    m.style.display = 'none';
+  }
+}
+document.addEventListener('click', () => {
+  document.querySelectorAll('[id^="menu-"]').forEach(m => m.style.display = 'none');
+});
 
 fetchStatus();
 setInterval(fetchStatus, 10000);
