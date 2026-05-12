@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tracker Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            surface: '#0f1117',
+            card: '#1a1d27',
+            border: '#2a2d3a',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { background: #0f1117; }
+    .signal-in-stock  { color: #4ade80; }
+    .signal-out-of-stock { color: #f87171; }
+    .signal-unknown   { color: #94a3b8; }
+    .signal-changed   { color: #facc15; }
+    .dot-in-stock  { background: #4ade80; }
+    .dot-out-of-stock { background: #f87171; }
+    .dot-unknown   { background: #475569; }
+    .dot-changed   { background: #facc15; }
+    @keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:.4} }
+    .pulse { animation: pulse-dot 2s infinite; }
+  </style>
+</head>
+<body class="text-slate-200 min-h-screen font-mono text-sm">
+
+  <!-- Header -->
+  <div class="border-b border-[#2a2d3a] px-6 py-4 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <span class="text-lg font-bold text-white">tracker</span>
+      <span id="running-badge" class="hidden text-xs px-2 py-0.5 rounded-full bg-yellow-500/20 text-yellow-400 border border-yellow-500/30">running...</span>
+    </div>
+    <div class="flex items-center gap-3">
+      <span id="last-updated" class="text-slate-500 text-xs"></span>
+      <button id="run-btn" onclick="runNow()"
+        class="px-4 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold transition-colors">
+        ▶ Run now
+      </button>
+      <button onclick="toggleAddForm()"
+        class="px-4 py-1.5 rounded-lg bg-[#1a1d27] hover:bg-[#2a2d3a] border border-[#2a2d3a] text-xs font-semibold transition-colors">
+        + Add tracker
+      </button>
+    </div>
+  </div>
+
+  <div class="max-w-4xl mx-auto px-6 py-6 space-y-6">
+
+    <!-- Run output -->
+    <div id="run-output" class="hidden bg-[#1a1d27] border border-[#2a2d3a] rounded-xl p-4">
+      <div class="text-xs text-slate-400 mb-2 font-semibold">Run output</div>
+      <pre id="run-output-text" class="text-xs text-slate-300 whitespace-pre-wrap"></pre>
+    </div>
+
+    <!-- Add tracker form -->
+    <div id="add-form" class="hidden bg-[#1a1d27] border border-[#2a2d3a] rounded-xl p-5">
+      <div class="font-semibold text-white mb-4">Add tracker</div>
+      <div class="space-y-3">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-xs text-slate-400 block mb-1">ID <span class="text-slate-600">(lowercase, dashes)</span></label>
+            <input id="f-id" type="text" placeholder="norli-etb-2025"
+              class="w-full bg-[#0f1117] border border-[#2a2d3a] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
+          </div>
+          <div>
+            <label class="text-xs text-slate-400 block mb-1">Name</label>
+            <input id="f-name" type="text" placeholder="Norli — ETB 2025"
+              class="w-full bg-[#0f1117] border border-[#2a2d3a] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
+          </div>
+        </div>
+        <div>
+          <label class="text-xs text-slate-400 block mb-1">URL</label>
+          <input id="f-url" type="url" placeholder="https://..."
+            oninput="autoDetect(this.value)"
+            class="w-full bg-[#0f1117] border border-[#2a2d3a] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
+        </div>
+        <div>
+          <label class="text-xs text-slate-400 block mb-1">Strategy</label>
+          <select id="f-strategy" onchange="updateStrategyFields()"
+            class="w-full bg-[#0f1117] border border-[#2a2d3a] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
+            <option value="magento-graphql">magento-graphql (Norli, etc.)</option>
+            <option value="shopify-json">shopify-json (Shopify stores)</option>
+            <option value="text-match">text-match (most retailers)</option>
+            <option value="selector-presence">selector-presence</option>
+            <option value="selector-absence">selector-absence</option>
+          </select>
+        </div>
+
+        <!-- Strategy-specific fields -->
+        <div id="fields-magento-graphql" class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-xs text-slate-400 block mb-1">GraphQL URL</label>
+            <input id="f-graphqlUrl" type="url" placeholder="https://checkout.example.no/graphql"
+              class="w-full bg-[#0f1117] border border-[#2a2d3a] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
+          </div>
+          <div>
+            <label class="text-xs text-slate-400 block mb-1">URL key <span class="text-slate-600">(last path segment)</span></label>
+            <input id="f-urlKey" type="text" placeholder="product-slug"
+              class="w-full bg-[#0f1117] border border-[#2a2d3a] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
+          </div>
+        </div>
+
+        <div id="fields-text-match" class="hidden space-y-3">
+          <div>
+            <label class="text-xs text-slate-400 block mb-1">CSS selector <span class="text-slate-600">(optional — scopes the search)</span></label>
+            <input id="f-selector-tm" type="text" placeholder=".stock-status"
+              class="w-full bg-[#0f1117] border border-[#2a2d3a] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="text-xs text-slate-400 block mb-1">In-stock pattern</label>
+              <input id="f-inStockPattern" type="text" placeholder="på lager|kjøp"
+                class="w-full bg-[#0f1117] border border-[#2a2d3a] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
+            </div>
+            <div>
+              <label class="text-xs text-slate-400 block mb-1">Out-of-stock pattern</label>
+              <input id="f-outOfStockPattern" type="text" placeholder="utsolgt|ikke på lager"
+                class="w-full bg-[#0f1117] border border-[#2a2d3a] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
+            </div>
+          </div>
+        </div>
+
+        <div id="fields-selector-presence" class="hidden">
+          <label class="text-xs text-slate-400 block mb-1">CSS selector <span class="text-slate-600">(in-stock when present)</span></label>
+          <input id="f-selector-sp" type="text" placeholder="button.add-to-cart"
+            class="w-full bg-[#0f1117] border border-[#2a2d3a] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
+        </div>
+
+        <div id="fields-selector-absence" class="hidden">
+          <label class="text-xs text-slate-400 block mb-1">CSS selector <span class="text-slate-600">(in-stock when absent)</span></label>
+          <input id="f-selector-sa" type="text" placeholder=".sold-out"
+            class="w-full bg-[#0f1117] border border-[#2a2d3a] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
+        </div>
+
+        <div id="fields-shopify-json" class="hidden">
+          <p class="text-xs text-slate-500">No extra config needed — the product JSON URL is derived from the product URL automatically.</p>
+        </div>
+
+        <div class="flex items-center justify-between pt-1">
+          <div id="form-error" class="text-xs text-red-400"></div>
+          <div class="flex gap-2">
+            <button onclick="toggleAddForm()" class="px-4 py-1.5 text-xs rounded-lg border border-[#2a2d3a] hover:bg-[#2a2d3a] transition-colors">Cancel</button>
+            <button onclick="addTracker()" class="px-4 py-1.5 text-xs rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-semibold transition-colors">Add</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Trackers -->
+    <div>
+      <div class="text-xs text-slate-500 uppercase tracking-widest mb-3">Tracked items</div>
+      <div id="trackers" class="space-y-2"></div>
+    </div>
+
+    <!-- History -->
+    <div>
+      <div class="text-xs text-slate-500 uppercase tracking-widest mb-3">Alert history</div>
+      <div id="history" class="space-y-2"></div>
+    </div>
+
+  </div>
+
+<script>
+let statusData = null;
+
+function timeAgo(iso) {
+  if (!iso) return '—';
+  const s = Math.floor((Date.now() - new Date(iso)) / 1000);
+  if (s < 60) return `${s}s ago`;
+  if (s < 3600) return `${Math.floor(s/60)}m ago`;
+  if (s < 86400) return `${Math.floor(s/3600)}h ago`;
+  return `${Math.floor(s/86400)}d ago`;
+}
+
+function signalLabel(signal) {
+  return { 'in-stock': '● In stock', 'out-of-stock': '○ Out of stock', 'unknown': '? Unknown', 'changed': '◆ Changed' }[signal] ?? signal;
+}
+
+async function fetchStatus() {
+  const [status, history] = await Promise.all([
+    fetch('/api/status').then(r => r.json()),
+    fetch('/api/history').then(r => r.json()),
+  ]);
+  statusData = status;
+  renderTrackers(status.trackers, status.running);
+  renderHistory(history);
+  document.getElementById('last-updated').textContent = 'Updated ' + timeAgo(new Date().toISOString());
+  document.getElementById('running-badge').classList.toggle('hidden', !status.running);
+}
+
+function renderTrackers(trackers, running) {
+  const el = document.getElementById('trackers');
+  if (!trackers.length) {
+    el.innerHTML = '<div class="text-slate-500 text-xs py-4">No trackers yet — add one above.</div>';
+    return;
+  }
+  el.innerHTML = trackers.map(t => {
+    const signal = t.state?.lastSignal ?? 'unknown';
+    const checked = timeAgo(t.state?.lastCheckedAt);
+    const signalAt = timeAgo(t.state?.lastSignalAt);
+    const disabled = !t.enabled;
+    return `
+    <div class="bg-[#1a1d27] border border-[#2a2d3a] rounded-xl px-4 py-3 flex items-center gap-4 ${disabled ? 'opacity-50' : ''}">
+      <div class="w-2 h-2 rounded-full dot-${signal} ${signal === 'in-stock' ? 'pulse' : ''}"></div>
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center gap-2">
+          <span class="font-semibold text-white truncate">${t.name}</span>
+          <span class="text-xs signal-${signal}">${signalLabel(signal)}</span>
+          ${disabled ? '<span class="text-xs px-1.5 py-0.5 rounded bg-slate-700 text-slate-400">disabled</span>' : ''}
+        </div>
+        <div class="text-xs text-slate-500 truncate mt-0.5">
+          <a href="${t.url}" target="_blank" class="hover:text-slate-300 transition-colors">${t.url}</a>
+          <span class="ml-3">checked ${checked}</span>
+          ${t.state ? `<span class="ml-2">· ${signal} for ${signalAt}</span>` : ''}
+        </div>
+      </div>
+      <div class="flex items-center gap-2 shrink-0">
+        <button onclick="toggleTracker('${t.id}')"
+          class="text-xs px-2 py-1 rounded border border-[#2a2d3a] hover:bg-[#2a2d3a] transition-colors">
+          ${t.enabled ? 'Pause' : 'Resume'}
+        </button>
+        <button onclick="removeTracker('${t.id}', '${t.name.replace(/'/g, "\\'")}')"
+          class="text-xs px-2 py-1 rounded border border-red-900/50 text-red-400 hover:bg-red-900/20 transition-colors">
+          Remove
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderHistory(history) {
+  const el = document.getElementById('history');
+  if (!history.length) {
+    el.innerHTML = '<div class="text-slate-500 text-xs py-4">No alerts fired yet.</div>';
+    return;
+  }
+  el.innerHTML = history.map(h => `
+    <div class="bg-[#1a1d27] border border-[#2a2d3a] rounded-xl px-4 py-3 flex items-center gap-4">
+      <div class="w-2 h-2 rounded-full dot-${h.signal}"></div>
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center gap-2">
+          <span class="font-semibold text-white">${h.trackerName}</span>
+          <span class="text-xs signal-${h.signal}">${signalLabel(h.signal)}</span>
+        </div>
+        <div class="text-xs text-slate-500 mt-0.5">${h.evidence || ''} · ${timeAgo(h.notifiedAt)}</div>
+      </div>
+      <a href="${h.url}" target="_blank" class="text-xs text-indigo-400 hover:text-indigo-300 transition-colors shrink-0">Open →</a>
+    </div>`).join('');
+}
+
+async function runNow() {
+  const btn = document.getElementById('run-btn');
+  const out = document.getElementById('run-output');
+  const outText = document.getElementById('run-output-text');
+  btn.disabled = true;
+  btn.textContent = 'Running...';
+  out.classList.remove('hidden');
+  outText.textContent = '…';
+  try {
+    const res = await fetch('/api/run', { method: 'POST' }).then(r => r.json());
+    outText.textContent = res.output || '(no output)';
+    await fetchStatus();
+  } catch (e) {
+    outText.textContent = 'Error: ' + e.message;
+  }
+  btn.disabled = false;
+  btn.textContent = '▶ Run now';
+}
+
+function toggleAddForm() {
+  document.getElementById('add-form').classList.toggle('hidden');
+  document.getElementById('form-error').textContent = '';
+}
+
+function updateStrategyFields() {
+  const s = document.getElementById('f-strategy').value;
+  ['magento-graphql','text-match','selector-presence','selector-absence','shopify-json'].forEach(id => {
+    document.getElementById('fields-' + id).classList.toggle('hidden', id !== s);
+  });
+}
+
+function autoDetect(url) {
+  try {
+    const u = new URL(url);
+    // Auto-fill ID and name from URL
+    const slug = u.pathname.split('/').filter(Boolean).pop() || '';
+    if (!document.getElementById('f-id').value) {
+      document.getElementById('f-id').value = slug.replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').slice(0, 50);
+    }
+    // Detect Norli (Magento)
+    if (u.hostname.includes('norli.no')) {
+      document.getElementById('f-strategy').value = 'magento-graphql';
+      document.getElementById('f-graphqlUrl').value = 'https://checkout.norli.no/graphql';
+      document.getElementById('f-urlKey').value = slug;
+      updateStrategyFields();
+      return;
+    }
+    // Detect Shopify
+    if (u.pathname.includes('/products/')) {
+      document.getElementById('f-strategy').value = 'shopify-json';
+      updateStrategyFields();
+      return;
+    }
+  } catch {}
+}
+
+async function addTracker() {
+  const strategy = document.getElementById('f-strategy').value;
+  const id = document.getElementById('f-id').value.trim();
+  const name = document.getElementById('f-name').value.trim();
+  const url = document.getElementById('f-url').value.trim();
+  const errEl = document.getElementById('form-error');
+  errEl.textContent = '';
+
+  let withData = {};
+  if (strategy === 'magento-graphql') {
+    withData = { graphqlUrl: document.getElementById('f-graphqlUrl').value.trim(), urlKey: document.getElementById('f-urlKey').value.trim() };
+  } else if (strategy === 'text-match') {
+    withData = { selector: document.getElementById('f-selector-tm').value.trim() || undefined, inStockPattern: document.getElementById('f-inStockPattern').value.trim() || undefined, outOfStockPattern: document.getElementById('f-outOfStockPattern').value.trim() || undefined, flags: 'i' };
+  } else if (strategy === 'selector-presence') {
+    withData = { selector: document.getElementById('f-selector-sp').value.trim() };
+  } else if (strategy === 'selector-absence') {
+    withData = { selector: document.getElementById('f-selector-sa').value.trim() };
+  }
+
+  const body = { id, name, url, strategy, with: withData, enabled: true };
+  const res = await fetch('/api/trackers', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }).then(r => r.json());
+  if (res.error) { errEl.textContent = res.error; return; }
+  toggleAddForm();
+  fetchStatus();
+}
+
+async function toggleTracker(id) {
+  await fetch(`/api/trackers/${id}/toggle`, { method: 'PATCH' });
+  fetchStatus();
+}
+
+async function removeTracker(id, name) {
+  if (!confirm(`Remove "${name}"?`)) return;
+  await fetch(`/api/trackers/${id}`, { method: 'DELETE' });
+  fetchStatus();
+}
+
+// Poll every 10s
+fetchStatus();
+setInterval(fetchStatus, 10_000);
+</script>
+</body>
+</html>
