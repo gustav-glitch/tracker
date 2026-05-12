@@ -40,11 +40,20 @@ export const ShopifyJsonSchema = BaseSchema.extend({
   with: z.object({}).default({}),
 });
 
+export const MagentoGraphqlSchema = BaseSchema.extend({
+  strategy: z.literal('magento-graphql'),
+  with: z.object({
+    graphqlUrl: z.string().url(),
+    urlKey: z.string().min(1),
+  }),
+});
+
 export const TrackerSchema = z.discriminatedUnion('strategy', [
   TextMatchSchema,
   SelectorPresenceSchema,
   SelectorAbsenceSchema,
   ShopifyJsonSchema,
+  MagentoGraphqlSchema,
 ]);
 
 export const ConfigSchema = z

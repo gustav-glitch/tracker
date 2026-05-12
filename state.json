@@ -1,4 +1,10 @@
 {
   "version": 1,
-  "trackers": {}
+  "trackers": {
+    "norli-pokemon-etb-me04": {
+      "lastSignal": "out-of-stock",
+      "lastSignalAt": "2026-05-12T19:50:06.915Z",
+      "lastCheckedAt": "2026-05-12T19:50:06.915Z"
+    }
+  }
 }
