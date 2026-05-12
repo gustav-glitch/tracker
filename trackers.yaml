@@ -102,3 +102,24 @@ trackers:
       inStockPattern: på lager|kjøp|legg i handlekurv|add to cart
       outOfStockPattern: utsolgt|ikke på lager|ikke tilgjengelig|out of stock
       flags: i
+  - id: cardstore-chaos-rising-elite-trainer-box-etb
+    name: Cardstore — Chaos Rising Elite Trainer Box Etb
+    url: https://www.cardstore.no/products/chaos-rising-elite-trainer-box-etb
+    cooldownMinutes: 360
+    enabled: true
+    strategy: shopify-json
+    with: {}
+  - id: cardstore-chaos-rising-booster-display
+    name: Cardstore — Chaos Rising Booster Display
+    url: https://www.cardstore.no/products/chaos-rising-booster-display
+    cooldownMinutes: 360
+    enabled: true
+    strategy: shopify-json
+    with: {}
+  - id: cardstore-ascended-heroes-booster-bundle
+    name: Cardstore — Ascended Heroes Booster Bundle
+    url: https://www.cardstore.no/products/ascended-heroes-booster-bundle
+    cooldownMinutes: 360
+    enabled: true
+    strategy: shopify-json
+    with: {}
