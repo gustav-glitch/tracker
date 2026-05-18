@@ -145,3 +145,14 @@ trackers:
       inStockPattern: på lager|kjøp|legg i handlekurv|add to cart
       outOfStockPattern: utsolgt|ikke på lager|ikke tilgjengelig|out of stock
       flags: i
+  - id: extra-leker-pokemon-tcg-samleboks-me02-5-ascended-heroes-meg
+    name: Extra-leker — Pokemon Tcg Samleboks Me02 5 Ascended Heroes Mega
+    url: >-
+      https://www.extra-leker.no/pokemon-tcg-samleboks-me02-5-ascended-heroes-mega-feraligatr-ex?_gl=1*pfmkrf*_up*MQ..*_ga*MTYyMjU0NTg3Ni4xNzc5MTAxNTMw*_ga_79V7B9G5C0*czE3NzkxMDE1MjkkbzEkZzAkdDE3NzkxMDE1MjkkajYwJGwwJGgzOTY2NTQ5ODg.*_ga_2T2NRZNFE6*czE3NzkxMDE1MjkkbzEkZzAkdDE3NzkxMDE1MjkkajYwJGwwJGgxMTY5Njk5NzAx
+    cooldownMinutes: 360
+    enabled: true
+    strategy: text-match
+    with:
+      inStockPattern: på lager|kjøp|legg i handlekurv|add to cart
+      outOfStockPattern: utsolgt|ikke på lager|ikke tilgjengelig|out of stock
+      flags: i
