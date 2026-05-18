@@ -123,3 +123,14 @@ trackers:
     enabled: true
     strategy: shopify-json
     with: {}
+  - id: outland-p-mega-evolution-4-chaos-rising-elite-trainer-boks-m
+    name: Outland — P Mega Evolution 4 Chaos Rising Elite Trainer Boks
+    url: >-
+      https://www.outland.no/p-mega-evolution-4-chaos-rising-elite-trainer-boks-mega-evolution-4-chaos-rising-pokemon-196214139954
+    cooldownMinutes: 360
+    enabled: true
+    strategy: text-match
+    with:
+      inStockPattern: på lager|kjøp|legg i handlekurv|add to cart
+      outOfStockPattern: utsolgt|ikke på lager|ikke tilgjengelig|out of stock
+      flags: i
