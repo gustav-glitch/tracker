@@ -134,3 +134,14 @@ trackers:
       inStockPattern: på lager|kjøp|legg i handlekurv|add to cart
       outOfStockPattern: utsolgt|ikke på lager|ikke tilgjengelig|out of stock
       flags: i
+  - id: nille-pokemon-me04-blister-chaos-rising-44b72914
+    name: Nille — Pokemon Me04 Blister Chaos Rising 44b72914
+    url: >-
+      https://www.nille.no/produkter/barnerom-og-leker/spill/pokemon-me04-blister-chaos-rising-44b72914/
+    cooldownMinutes: 360
+    enabled: true
+    strategy: text-match
+    with:
+      inStockPattern: på lager|kjøp|legg i handlekurv|add to cart
+      outOfStockPattern: utsolgt|ikke på lager|ikke tilgjengelig|out of stock
+      flags: i
