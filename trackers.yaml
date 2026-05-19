@@ -156,3 +156,13 @@ trackers:
       inStockPattern: på lager|kjøp|legg i handlekurv|add to cart
       outOfStockPattern: utsolgt|ikke på lager|ikke tilgjengelig|out of stock
       flags: i
+  - id: norli-pokemon-prem-poster-coll-me02-5-2-0196214131033
+    name: Norli — Pokemon Prem Poster Coll Me02 5 2
+    url: >-
+      https://www.norli.no/leker/kreative-leker/samlekort/pokemonkort/pokemon-prem-poster-coll-me02-5-2-0196214131033
+    cooldownMinutes: 360
+    enabled: true
+    strategy: magento-graphql
+    with:
+      graphqlUrl: https://checkout.norli.no/graphql
+      urlKey: pokemon-prem-poster-coll-me02-5-2-0196214131033
