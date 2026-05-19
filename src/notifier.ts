@@ -1,8 +1,8 @@
 import type { Notification } from './transitions.js';
 
-const SIGNAL_TAG: Record<Notification['signal'], { tag: string; emoji: string }> = {
-  'in-stock': { tag: 'white_check_mark', emoji: '✅' },
-  'changed': { tag: 'bell', emoji: '🔔' },
+const SIGNAL_TAG: Record<Notification['signal'], string> = {
+  'in-stock': 'white_check_mark',
+  'changed': 'bell',
 };
 
 export async function sendNtfy(
@@ -11,7 +11,7 @@ export async function sendNtfy(
   n: Notification,
   fetchFn: typeof fetch = fetch,
 ): Promise<void> {
-  const { tag, emoji } = SIGNAL_TAG[n.signal];
+  const tag = SIGNAL_TAG[n.signal];
   const url = `${server.replace(/\/$/, '')}/${encodeURIComponent(topic)}`;
   const body = (n.evidence || n.url).slice(0, 1000);
 
