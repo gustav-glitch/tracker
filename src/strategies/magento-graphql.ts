@@ -4,7 +4,14 @@ import type { Strategy, StrategyInput, StrategyResult } from './types.js';
 const QUERY = `
   query StockStatus($urlKey: String!) {
     products(filter: { url_key: { eq: $urlKey } }) {
-      items { name stock_status }
+      items {
+        name
+        stock_status
+        custom_attributes {
+          attribute_metadata { code }
+          selected_attribute_options { attribute_option { label } }
+        }
+      }
     }
   }
 `;
@@ -14,7 +21,12 @@ export const magentoGraphql: Strategy<MagentoGraphqlConfig['with']> = {
   async run(input: StrategyInput<MagentoGraphqlConfig['with']>): Promise<StrategyResult> {
     const { config, fetchFn } = input;
 
-    let data: { data?: { products?: { items?: { name?: string; stock_status?: string }[] } } };
+    type Item = {
+      name?: string;
+      stock_status?: string;
+      custom_attributes?: { attribute_metadata: { code: string }; selected_attribute_options: { attribute_option: { label: string }[] | null } }[];
+    };
+    let data: { data?: { products?: { items?: Item[] } } };
     try {
       const res = await fetchFn(config.graphqlUrl, {
         method: 'POST',
@@ -33,6 +45,14 @@ export const magentoGraphql: Strategy<MagentoGraphqlConfig['with']> = {
     }
 
     const status = item.stock_status;
+
+    // Check if product has a "not sale before date" restriction (pre-order state)
+    const notSaleBefore = item.custom_attributes?.find(a => a.attribute_metadata.code === 'not_sale_before_date');
+    const isPreOrder = notSaleBefore?.selected_attribute_options?.attribute_option?.some(o => o.label === 'Ja');
+    if (isPreOrder) {
+      return { signal: 'out-of-stock', evidence: `stock_status=${status} but not_sale_before_date=Ja (pre-order only)` };
+    }
+
     if (status === 'IN_STOCK') {
       return { signal: 'in-stock', evidence: `stock_status=IN_STOCK` };
     }
