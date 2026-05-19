@@ -18,7 +18,7 @@ export async function sendNtfy(
   const res = await fetchFn(url, {
     method: 'POST',
     headers: {
-      Title: `${emoji} ${n.trackerName}`,
+      Title: n.trackerName,
       Tags: tag,
       Click: n.url,
       Priority: '4',
