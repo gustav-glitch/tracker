@@ -197,3 +197,12 @@ trackers:
     with:
       type: html
       itemPattern: /produkt(?:er)?/([a-zA-Z0-9-]{5,})
+  - id: catalog-sprell-pokemon
+    name: Sprell — Pokemon
+    url: https://www.sprell.no/brand/pokemon
+    cooldownMinutes: 360
+    enabled: true
+    strategy: catalog-watch
+    with:
+      type: html
+      itemPattern: /produkt(?:er)?/([a-zA-Z0-9-]{5,})
