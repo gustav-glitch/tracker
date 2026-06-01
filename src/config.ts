@@ -48,12 +48,22 @@ export const MagentoGraphqlSchema = BaseSchema.extend({
   }),
 });
 
+export const CatalogWatchSchema = BaseSchema.extend({
+  strategy: z.literal('catalog-watch'),
+  with: z.object({
+    type: z.enum(['shopify', 'html']),
+    // html only: regex to extract product identifiers from page
+    itemPattern: z.string().optional(),
+  }),
+});
+
 export const TrackerSchema = z.discriminatedUnion('strategy', [
   TextMatchSchema,
   SelectorPresenceSchema,
   SelectorAbsenceSchema,
   ShopifyJsonSchema,
   MagentoGraphqlSchema,
+  CatalogWatchSchema,
 ]);
 
 export const ConfigSchema = z

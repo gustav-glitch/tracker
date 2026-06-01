@@ -7,6 +7,7 @@ export type TrackerState = {
   lastCheckedAt: string;
   lastNotifiedSignal?: Exclude<Signal, 'unknown'>;
   lastNotifiedAt?: string;
+  catalogItems?: string[]; // for catalog-watch: last known product list
 };
 
 export type State = {

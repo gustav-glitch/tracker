@@ -26,6 +26,7 @@ export function detectTransitions(
       next.trackers[r.id] = {
         ...(prevT ?? { lastSignal: 'unknown' as const, lastSignalAt: nowIso }),
         lastCheckedAt: nowIso,
+        ...(r.catalogItems !== undefined ? { catalogItems: r.catalogItems } : {}),
       };
       continue;
     }
@@ -37,6 +38,7 @@ export function detectTransitions(
       lastCheckedAt: nowIso,
       lastNotifiedSignal: prevT?.lastNotifiedSignal,
       lastNotifiedAt: prevT?.lastNotifiedAt,
+      ...(r.catalogItems !== undefined ? { catalogItems: r.catalogItems } : { catalogItems: prevT?.catalogItems }),
     };
 
     const isPositive = r.signal === 'in-stock' || r.signal === 'changed';

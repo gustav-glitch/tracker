@@ -26,7 +26,7 @@ async function main() {
 
   const cfg = await loadConfig(cfgPath);
   const state = await loadState(statePath);
-  const results = await runChecks(cfg);
+  const results = await runChecks(cfg, { state });
 
   const cooldown = (id: string) => cfg.trackers.find((t) => t.id === id)?.cooldownMinutes ?? 360;
   const { notifications, nextState } = detectTransitions(state, results, cooldown, new Date());

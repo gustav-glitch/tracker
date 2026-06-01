@@ -67,6 +67,18 @@ app.post('/api/run', (req, res) => {
   });
 });
 
+// ── Git push trackers.yaml ───────────────────────────────────────────────────
+function pushTrackers(message: string): Promise<{ success: boolean; output: string }> {
+  return new Promise((resolve) => {
+    const cmd = `git add trackers.yaml && git commit -m "${message} [skip ci]" && git push`;
+    const child = spawn('sh', ['-c', cmd], { cwd: ROOT });
+    let output = '';
+    child.stdout.on('data', (d: Buffer) => (output += d.toString()));
+    child.stderr.on('data', (d: Buffer) => (output += d.toString()));
+    child.on('close', (code) => resolve({ success: code === 0, output: output.trim() }));
+  });
+}
+
 // ── Add tracker ──────────────────────────────────────────────────────────────
 app.post('/api/trackers', async (req, res) => {
   const parsed = TrackerSchema.safeParse(req.body);
@@ -83,6 +95,7 @@ app.post('/api/trackers', async (req, res) => {
   }
   raw.trackers = [...existing, parsed.data];
   await writeFile(TRACKERS_PATH, dump(raw), 'utf8');
+  await pushTrackers(`chore(trackers): add ${parsed.data.id}`);
   res.json({ ok: true });
 });
 
@@ -94,6 +107,7 @@ app.patch('/api/trackers/:id/toggle', async (req, res) => {
   if (!tracker) { res.status(404).json({ error: 'not found' }); return; }
   tracker.enabled = !tracker.enabled;
   await writeFile(TRACKERS_PATH, dump(raw), 'utf8');
+  await pushTrackers(`chore(trackers): ${tracker.enabled ? 'enable' : 'disable'} ${id}`);
   res.json({ ok: true, enabled: tracker.enabled });
 });
 
@@ -105,7 +119,44 @@ app.delete('/api/trackers/:id', async (req, res) => {
   raw.trackers = raw.trackers.filter((t) => t.id !== id);
   if (raw.trackers.length === before) { res.status(404).json({ error: 'not found' }); return; }
   await writeFile(TRACKERS_PATH, dump(raw), 'utf8');
+  await pushTrackers(`chore(trackers): remove ${id}`);
   res.json({ ok: true });
+});
+
+// ── Git pull (merge state.json, keep most recent per tracker) ────────────────
+app.post('/api/pull', async (_req, res) => {
+  const fetch = await new Promise<{ success: boolean; output: string }>((resolve) => {
+    const child = spawn('sh', ['-c', 'git fetch origin && git show origin/main:state.json'], { cwd: ROOT });
+    let out = ''; let err = '';
+    child.stdout.on('data', (d: Buffer) => (out += d.toString()));
+    child.stderr.on('data', (d: Buffer) => (err += d.toString()));
+    child.on('close', (code) => resolve({ success: code === 0, output: code === 0 ? out : err }));
+  });
+
+  if (!fetch.success) {
+    res.json({ success: false, output: fetch.output });
+    return;
+  }
+
+  try {
+    const remote = JSON.parse(fetch.output) as { version: number; trackers: Record<string, { lastCheckedAt?: string }> };
+    let local: { version: number; trackers: Record<string, { lastCheckedAt?: string }> } = { version: 1, trackers: {} };
+    try { local = JSON.parse(await readFile(STATE_PATH, 'utf8')); } catch { /* no local state */ }
+
+    const merged = { ...remote.trackers };
+    for (const [id, entry] of Object.entries(local.trackers)) {
+      const remoteEntry = remote.trackers[id];
+      if (!remoteEntry) { merged[id] = entry; continue; }
+      const localTime = new Date(entry.lastCheckedAt ?? 0).getTime();
+      const remoteTime = new Date(remoteEntry.lastCheckedAt ?? 0).getTime();
+      if (localTime > remoteTime) merged[id] = entry;
+    }
+
+    await writeFile(STATE_PATH, JSON.stringify({ version: 1, trackers: merged }, null, 2) + '\n', 'utf8');
+    res.json({ success: true, output: 'Synced' });
+  } catch (e) {
+    res.json({ success: false, output: String(e) });
+  }
 });
 
 // ── Start ────────────────────────────────────────────────────────────────────

@@ -129,8 +129,17 @@
     </div>
     <div style="display:flex;gap:8px;align-items:center;">
       <span id="last-updated" style="font-size:12px;color:var(--muted);"></span>
+      <button class="btn-secondary" id="pull-btn" onclick="pullNow()">↓ Sync</button>
       <button class="btn-secondary" onclick="toggleAddForm()" id="add-btn">+ Add tracker</button>
       <button class="btn-primary" id="run-btn" onclick="runNow()">▶ Run now</button>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div style="background:var(--nav);border-bottom:1px solid var(--line);padding:0 32px;">
+    <div style="max-width:960px;margin:0 auto;display:flex;gap:0;">
+      <button onclick="switchTab('trackers')" id="tab-trackers" style="padding:12px 18px;font-size:13px;font-weight:500;border:none;background:none;cursor:pointer;border-bottom:2px solid var(--ink);color:var(--ink);">Products</button>
+      <button onclick="switchTab('catalog')" id="tab-catalog" style="padding:12px 18px;font-size:13px;font-weight:500;border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;color:var(--muted);">Catalog watches</button>
     </div>
   </div>
 
@@ -141,6 +150,9 @@
       <div class="section-label" style="margin-bottom:8px;">Run output</div>
       <pre id="run-output-text" style="font-size:12px;color:var(--soft);white-space:pre-wrap;margin:0;font-family:ui-monospace,monospace;"></pre>
     </div>
+
+  <!-- ── TRACKERS TAB ─────────────────────────────────────────────────────── -->
+  <div id="panel-trackers">
 
     <!-- Add tracker form -->
     <div id="add-form" style="display:none;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:20px;">
@@ -220,6 +232,64 @@
       </div>
     </div>
 
+  </div> <!-- end panel-trackers -->
+
+  <!-- ── CATALOG TAB ─────────────────────────────────────────────────────── -->
+  <div id="panel-catalog" style="display:none;display:flex;flex-direction:column;gap:24px;">
+
+    <!-- Add catalog watch form -->
+    <div id="catalog-add-form" style="display:none;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:20px;">
+      <div style="font-weight:600;margin-bottom:16px;">Add catalog watch</div>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:4px;">Category page URL</div>
+          <input id="cf-url" type="url" placeholder="https://proshop.no/Pokemon" oninput="catalogAutoDetect(this.value)">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div>
+            <div style="font-size:12px;color:var(--muted);margin-bottom:4px;">Name</div>
+            <input id="cf-name" type="text" placeholder="Proshop — Pokémon TCG">
+          </div>
+          <div style="display:flex;flex-direction:column;justify-content:flex-end;">
+            <div id="cf-detected" style="display:none;font-size:12px;color:var(--soft);padding:10px 14px;background:var(--track);border-radius:8px;border:1px solid var(--line);"></div>
+          </div>
+        </div>
+        <input id="cf-id" type="hidden">
+        <input id="cf-type" type="hidden" value="html">
+        <input id="cf-pattern" type="hidden">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding-top:4px;">
+          <div id="cf-error" style="font-size:12px;color:#dc2626;"></div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn-secondary" onclick="toggleCatalogForm()">Cancel</button>
+            <button class="btn-primary" onclick="addCatalogWatch()">Add watch</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Catalog watches table -->
+    <div>
+      <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);padding-bottom:14px;">
+        <div>
+          <div class="section-label">Category monitors</div>
+          <div style="font-size:18px;font-weight:600;margin-top:3px;">Catalog watches</div>
+        </div>
+        <button class="btn-secondary" id="catalog-add-btn" onclick="toggleCatalogForm()">+ Add watch</button>
+      </div>
+      <div id="catalog-table" style="background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-top:16px;">
+        <div style="display:grid;grid-template-columns:minmax(260px,1.7fr) 0.7fr 0.7fr minmax(140px,0.9fr) 32px;gap:16px;padding:10px 16px;border-bottom:1px solid var(--line);">
+          <span class="section-label">Store / Category</span>
+          <span class="section-label" style="text-align:right;">Last checked</span>
+          <span class="section-label" style="text-align:right;">Products</span>
+          <span class="section-label" style="text-align:right;">Status</span>
+          <span></span>
+        </div>
+        <div id="catalog-rows"></div>
+      </div>
+    </div>
+
+  </div> <!-- end panel-catalog -->
+
   </div>
 
 <script>
@@ -241,10 +311,13 @@ async function fetchStatus() {
     fetch('/api/status').then(r => r.json()),
     fetch('/api/history').then(r => r.json()),
   ]);
-  renderTrackers(status.trackers, status.running);
+  const productTrackers = status.trackers.filter(t => t.strategy !== 'catalog-watch');
+  const catalogTrackers = status.trackers.filter(t => t.strategy === 'catalog-watch');
+  renderTrackers(productTrackers, status.running);
+  renderCatalog(catalogTrackers);
   renderHistory(history);
 
-  const inStock = status.trackers.filter(t => t.state?.lastSignal === 'in-stock').length;
+  const inStock = productTrackers.filter(t => t.state?.lastSignal === 'in-stock').length;
   document.getElementById('tracker-stats').innerHTML = [
     pill(`${status.trackers.length} tracked`),
     inStock > 0 ? pill(`${inStock} in stock`, true) : '',
@@ -329,6 +402,25 @@ function renderHistory(history) {
       </div>
     </div>`;
   }).join('');
+}
+
+async function pullNow() {
+  const btn = document.getElementById('pull-btn');
+  btn.disabled = true;
+  btn.textContent = '↓ Syncing…';
+  try {
+    const res = await fetch('/api/pull', { method: 'POST' }).then(r => r.json());
+    if (res.success) {
+      showToast(res.output.includes('Already up to date') ? 'Already up to date' : 'Synced with GitHub');
+      await fetchStatus();
+    } else {
+      showToast('Sync failed: ' + res.output);
+    }
+  } catch (e) {
+    showToast('Sync error: ' + e.message);
+  }
+  btn.disabled = false;
+  btn.textContent = '↓ Sync';
 }
 
 async function runNow() {
@@ -473,7 +565,7 @@ function showToast(msg) {
 
 function toggleMenu(id, e) {
   e.stopPropagation();
-  document.querySelectorAll('[id^="menu-"]').forEach(m => { if (m.id !== id) m.style.display = 'none'; });
+  document.querySelectorAll('[id^="menu-"],[id^="cmenu-"]').forEach(m => { if (m.id !== id) m.style.display = 'none'; });
   const m = document.getElementById(id);
   if (m.style.display === 'none') {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -487,10 +579,154 @@ function toggleMenu(id, e) {
   }
 }
 document.addEventListener('click', () => {
-  document.querySelectorAll('[id^="menu-"]').forEach(m => m.style.display = 'none');
+  document.querySelectorAll('[id^="menu-"],[id^="cmenu-"]').forEach(m => m.style.display = 'none');
 });
 
-fetchStatus();
+// ── Tabs ──────────────────────────────────────────────────────────────────────
+let activeTab = 'trackers';
+function switchTab(tab) {
+  activeTab = tab;
+  const pt = document.getElementById('panel-trackers');
+  const pc = document.getElementById('panel-catalog');
+  pt.style.display = tab === 'trackers' ? 'flex' : 'none';
+  pt.style.flexDirection = 'column'; pt.style.gap = '24px';
+  pc.style.display = tab === 'catalog' ? 'flex' : 'none';
+  pc.style.flexDirection = 'column'; pc.style.gap = '24px';
+  document.getElementById('add-btn').style.display = tab === 'trackers' ? '' : 'none';
+  ['trackers','catalog'].forEach(t => {
+    const btn = document.getElementById('tab-' + t);
+    btn.style.borderBottomColor = t === tab ? 'var(--ink)' : 'transparent';
+    btn.style.color = t === tab ? 'var(--ink)' : 'var(--muted)';
+  });
+}
+
+// ── Catalog watches ───────────────────────────────────────────────────────────
+const SHOPIFY_DOMAINS_CAT = ['cardcenter.no','cardshop.no','playlot.no','pokeplanet.no','kortspesialisten.no'];
+const HTML_CATALOG_PATTERNS = {
+  'proshop.no': '/produkt(?:er)?/([a-zA-Z0-9-]{5,})',
+  'komplett.no': '/produkt/([a-zA-Z0-9-]{5,})',
+  'elkjop.no': '/product/([a-zA-Z0-9-]{5,})',
+  'power.no': '/product/([a-zA-Z0-9-]{5,})',
+};
+
+function catalogAutoDetect(url) {
+  const badge = document.getElementById('cf-detected');
+  try {
+    const u = new URL(url);
+    const host = u.hostname.replace('www.','');
+    const slug = u.pathname.split('/').filter(Boolean).pop() || '';
+    if (!document.getElementById('cf-name').value) {
+      const site = host.split('.')[0].charAt(0).toUpperCase() + host.split('.')[0].slice(1);
+      const cat = slug.replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+      document.getElementById('cf-name').value = site + ' — ' + (cat || 'Pokémon TCG');
+    }
+    document.getElementById('cf-id').value = ('catalog-' + host.split('.')[0] + '-' + (slug||'pokemon')).replace(/[^a-z0-9-]/gi,'-').toLowerCase().replace(/-+/g,'-').slice(0,60);
+    if (SHOPIFY_DOMAINS_CAT.some(d => host.includes(d))) {
+      document.getElementById('cf-type').value = 'shopify';
+      document.getElementById('cf-pattern').value = '';
+      badge.style.display = 'block'; badge.textContent = '✓ Shopify — watches products.json for new listings';
+      return;
+    }
+    const pattern = Object.entries(HTML_CATALOG_PATTERNS).find(([d]) => host.includes(d));
+    if (pattern) {
+      document.getElementById('cf-type').value = 'html';
+      document.getElementById('cf-pattern').value = pattern[1];
+      badge.style.display = 'block'; badge.textContent = '✓ Known store — scanning product links';
+      return;
+    }
+    document.getElementById('cf-type').value = 'html';
+    document.getElementById('cf-pattern').value = '/produkt(?:er)?/([a-zA-Z0-9-]{5,})';
+    badge.style.display = 'block'; badge.textContent = '⚠ Unknown store — using generic product link pattern';
+  } catch { badge.style.display = 'none'; }
+}
+
+function toggleCatalogForm() {
+  const f = document.getElementById('catalog-add-form');
+  const showing = f.style.display !== 'none';
+  f.style.display = showing ? 'none' : 'block';
+  document.getElementById('catalog-add-btn').textContent = showing ? '+ Add watch' : '× Cancel';
+  if (showing) ['cf-id','cf-name','cf-url','cf-pattern'].forEach(id => { document.getElementById(id).value = ''; document.getElementById('cf-detected').style.display = 'none'; });
+}
+
+async function addCatalogWatch() {
+  const url = document.getElementById('cf-url').value.trim();
+  const name = document.getElementById('cf-name').value.trim();
+  const errEl = document.getElementById('cf-error');
+  errEl.textContent = '';
+  if (!url) { errEl.textContent = 'URL is required.'; return; }
+  if (!name) { errEl.textContent = 'Name is required.'; return; }
+  catalogAutoDetect(url);
+  const id = document.getElementById('cf-id').value;
+  const type = document.getElementById('cf-type').value;
+  const itemPattern = document.getElementById('cf-pattern').value || undefined;
+  const withData = { type, ...(itemPattern ? { itemPattern } : {}) };
+  const res = await fetch('/api/trackers', {
+    method:'POST', headers:{'content-type':'application/json'},
+    body: JSON.stringify({ id, name, url, strategy: 'catalog-watch', with: withData, enabled: true, cooldownMinutes: 360 })
+  }).then(r => r.json());
+  if (res.error) { errEl.textContent = res.error; return; }
+  ['cf-id','cf-name','cf-url','cf-pattern'].forEach(fid => { document.getElementById(fid).value = ''; });
+  document.getElementById('cf-detected').style.display = 'none';
+  toggleCatalogForm();
+  showToast('Catalog watch added — running first check…');
+  await fetchStatus();
+  await runNow();
+}
+
+function renderCatalog(catalogs) {
+  const el = document.getElementById('catalog-rows');
+  if (!catalogs.length) {
+    el.innerHTML = `<div style="padding:20px 16px;color:var(--muted);font-size:13px;">No catalog watches yet — add one to track new product listings.</div>`;
+    return;
+  }
+  el.innerHTML = catalogs.map((t, i) => {
+    const hasState = !!t.state;
+    const checked = hasState ? timeAgo(t.state?.lastCheckedAt) : '—';
+    const count = t.state?.catalogItems?.length ?? '—';
+    const border = i > 0 ? 'border-top:1px solid var(--line);' : '';
+    const dim = !t.enabled ? 'opacity:0.5;' : '';
+    const safeId = t.id.replace(/'/g, "\\'");
+    const safeName = t.name.replace(/'/g, "\\'");
+    const hasNew = t.state?.lastSignal === 'changed';
+    const dotClass = hasNew ? 'dot-changed' : (hasState ? 'dot-out-of-stock' : 'dot-unknown');
+    return `
+    <div style="display:grid;grid-template-columns:minmax(260px,1.7fr) 0.7fr 0.7fr minmax(140px,0.9fr) 32px;gap:16px;padding:11px 16px;${border}${dim}transition:background .1s;"
+      onmouseover="this.style.background='var(--track)'" onmouseout="this.style.background=''">
+      <div style="min-width:0;">
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span class="dot ${dotClass}"></span>
+          <span style="font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${t.name}</span>
+          ${!t.enabled ? `<span style="font-size:11px;border:1px solid var(--line);border-radius:4px;padding:1px 6px;color:var(--muted);">paused</span>` : ''}
+        </div>
+        <div style="font-size:12px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+          <a href="${t.url}" target="_blank" style="color:var(--muted);text-decoration:none;" onmouseover="this.style.color='var(--ink)'" onmouseout="this.style.color='var(--muted)'">${t.url}</a>
+        </div>
+        ${hasNew && t.state?.lastEvidence ? `<div style="font-size:12px;color:#92400e;margin-top:3px;">↳ ${t.state.lastEvidence}</div>` : ''}
+      </div>
+      <div style="text-align:right;font-size:13px;color:var(--soft);align-self:center;">${checked}</div>
+      <div style="text-align:right;font-size:13px;color:var(--soft);align-self:center;">${count}</div>
+      <div style="text-align:right;align-self:center;">
+        ${!hasState
+          ? `<span class="signal-badge" style="border-color:var(--line);color:var(--muted);background:var(--track);">Pending…</span>`
+          : hasNew
+            ? `<span class="signal-badge badge-changed">New products!</span>`
+            : `<span class="signal-badge badge-out-of-stock">Watching</span>`
+        }
+      </div>
+      <div style="align-self:center;position:relative;">
+        <button class="btn-ghost" onclick="toggleMenu('cmenu-${safeId}', event)"
+          style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:16px;padding:0;border-radius:6px;">⋯</button>
+        <div id="cmenu-${safeId}" style="display:none;position:fixed;background:var(--panel);border:1px solid var(--line);border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.08);min-width:130px;z-index:100;overflow:hidden;">
+          <button onclick="toggleTracker('${safeId}')" style="display:block;width:100%;text-align:left;padding:8px 14px;font-size:13px;color:var(--ink);background:none;border:none;cursor:pointer;" onmouseover="this.style.background='var(--track)'" onmouseout="this.style.background=''">${t.enabled ? 'Pause' : 'Resume'}</button>
+          <button onclick="removeTracker('${safeId}','${safeName}')" style="display:block;width:100%;text-align:left;padding:8px 14px;font-size:13px;color:#dc2626;background:none;border:none;cursor:pointer;border-top:1px solid var(--line);" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background=''">Remove</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// Auto-pull on load then refresh status
+pullNow().then(() => fetchStatus());
 setInterval(fetchStatus, 10000);
 </script>
 </body>
