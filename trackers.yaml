@@ -156,13 +156,44 @@ trackers:
       inStockPattern: på lager|kjøp|legg i handlekurv|add to cart
       outOfStockPattern: utsolgt|ikke på lager|ikke tilgjengelig|out of stock
       flags: i
-  - id: norli-pokemon-prem-poster-coll-me02-5-2-0196214131033
-    name: Norli — Pokemon Prem Poster Coll Me02 5 2
+  - id: norli-pokemon-bst-bundle-me04-0196214140349
+    name: Norli — Pokemon Bst Bundle Me04
     url: >-
-      https://www.norli.no/leker/kreative-leker/samlekort/pokemonkort/pokemon-prem-poster-coll-me02-5-2-0196214131033
+      https://www.norli.no/leker/kreative-leker/samlekort/pokemonkort/pokemon-bst-bundle-me04-0196214140349
     cooldownMinutes: 360
     enabled: true
     strategy: magento-graphql
     with:
       graphqlUrl: https://checkout.norli.no/graphql
-      urlKey: pokemon-prem-poster-coll-me02-5-2-0196214131033
+      urlKey: pokemon-bst-bundle-me04-0196214140349
+  - id: proshop-3435338
+    name: Proshop — 3435338
+    url: >-
+      https://www.proshop.no/Pokemon/Pokemon-Poke-ME025-Elite-Trainer-Box/3435338
+    cooldownMinutes: 360
+    enabled: true
+    strategy: text-match
+    with:
+      inStockPattern: på lager|kjøp|legg i handlekurv|add to cart
+      outOfStockPattern: utsolgt|ikke på lager|ikke tilgjengelig|out of stock
+      flags: i
+  - id: proshop-3447579
+    name: Proshop — 3447579
+    url: >-
+      https://www.proshop.no/Pokemon/Pokemon-Poke-Box-First-Partner-Collection/3447579
+    cooldownMinutes: 360
+    enabled: true
+    strategy: text-match
+    with:
+      inStockPattern: på lager|kjøp|legg i handlekurv|add to cart
+      outOfStockPattern: utsolgt|ikke på lager|ikke tilgjengelig|out of stock
+      flags: i
+  - id: catalog-proshop-pokemon
+    name: Proshop — Pokemon
+    url: https://www.proshop.no/Pokemon/Pokemon
+    cooldownMinutes: 360
+    enabled: true
+    strategy: catalog-watch
+    with:
+      type: html
+      itemPattern: /produkt(?:er)?/([a-zA-Z0-9-]{5,})
