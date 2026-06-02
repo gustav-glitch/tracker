@@ -1,5 +1,5 @@
 import { strategies } from './strategies/index.js';
-import { fetchHtml } from './fetcher.js';
+import { fetchHtml, fetchWithPlaywright } from './fetcher.js';
 import type { Config, TrackerConfig } from './types.js';
 import type { Signal } from './strategies/types.js';
 import type { State } from './state.js';
@@ -26,7 +26,9 @@ export async function runChecks(
   const tasks = enabled.map(async (t): Promise<TrackerResult> => {
     const checkedAt = new Date().toISOString();
     try {
-      const html = await fetchHtml(t.url, fetchFn);
+      const html = t.fetchMode === 'playwright'
+        ? await fetchWithPlaywright(t.url)
+        : await fetchHtml(t.url, fetchFn);
       const strat = strategies[t.strategy];
       const knownItems = state?.trackers[t.id]?.catalogItems;
       const result = await strat.run({

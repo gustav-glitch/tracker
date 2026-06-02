@@ -9,6 +9,7 @@ export const BaseSchema = z.object({
   ntfyTopic: z.string().min(1).optional(),
   cooldownMinutes: z.number().int().positive().default(360),
   enabled: z.boolean().default(true),
+  fetchMode: z.enum(['http', 'playwright']).default('http'),
 });
 
 export const TextMatchSchema = BaseSchema.extend({
@@ -57,6 +58,13 @@ export const CatalogWatchSchema = BaseSchema.extend({
   }),
 });
 
+export const KeywordWatchSchema = BaseSchema.extend({
+  strategy: z.literal('keyword-watch'),
+  with: z.object({
+    keywords: z.array(z.string().min(1)).min(1),
+  }),
+});
+
 export const TrackerSchema = z.discriminatedUnion('strategy', [
   TextMatchSchema,
   SelectorPresenceSchema,
@@ -64,6 +72,7 @@ export const TrackerSchema = z.discriminatedUnion('strategy', [
   ShopifyJsonSchema,
   MagentoGraphqlSchema,
   CatalogWatchSchema,
+  KeywordWatchSchema,
 ]);
 
 export const ConfigSchema = z

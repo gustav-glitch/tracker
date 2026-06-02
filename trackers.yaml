@@ -193,10 +193,40 @@ trackers:
     url: https://www.proshop.no/Pokemon/Pokemon
     cooldownMinutes: 360
     enabled: true
+    fetchMode: playwright
     strategy: catalog-watch
     with:
       type: html
-      itemPattern: /produkt(?:er)?/([a-zA-Z0-9-]{5,})
+      itemPattern: href="(/Pokemon/[^/"]{5,}/\d{5,})"
+  - id: keywords-proshop-pokemon
+    name: Proshop — Pokemon new sets
+    url: https://www.proshop.no/Pokemon/Pokemon
+    cooldownMinutes: 360
+    enabled: true
+    fetchMode: playwright
+    strategy: keyword-watch
+    with:
+      keywords:
+        - Ascended Heroes
+        - Chaos Rising
+        - Stellar Crown
+        - Prismatic Evolutions
+        - Journey Together
+        - Destined Rivals
+  - id: keywords-sprell-pokemon
+    name: Sprell — Pokemon new sets
+    url: https://www.sprell.no/brand/pokemon
+    cooldownMinutes: 360
+    enabled: true
+    strategy: keyword-watch
+    with:
+      keywords:
+        - Ascended Heroes
+        - Chaos Rising
+        - Stellar Crown
+        - Prismatic Evolutions
+        - Journey Together
+        - Destined Rivals
   - id: catalog-sprell-pokemon
     name: Sprell — Pokemon
     url: https://www.sprell.no/brand/pokemon

@@ -40,7 +40,7 @@ describe('sendNtfy', () => {
     const { calls, fetchFn } = captureFetch();
     await sendNtfy('https://ntfy.sh', 'my-topic', inStock, fetchFn);
     const headers = calls[0]?.init.headers as Record<string, string>;
-    expect(headers['Title']).toBe('✅ Nille booster pack');
+    expect(headers['Title']).toBe('Nille booster pack');
     expect(headers['Tags']).toBe('white_check_mark');
     expect(headers['Click']).toBe(inStock.url);
     expect(headers['Priority']).toBe('4');
@@ -50,7 +50,7 @@ describe('sendNtfy', () => {
     const { calls, fetchFn } = captureFetch();
     await sendNtfy('https://ntfy.sh', 'my-topic', changed, fetchFn);
     const headers = calls[0]?.init.headers as Record<string, string>;
-    expect(headers['Title']).toBe('🔔 Changed product');
+    expect(headers['Title']).toBe('Changed product');
     expect(headers['Tags']).toBe('bell');
   });
 

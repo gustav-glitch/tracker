@@ -4,6 +4,7 @@ import { selectorAbsence } from './selector-absence.js';
 import { shopifyJson } from './shopify-json.js';
 import { magentoGraphql } from './magento-graphql.js';
 import { catalogWatch } from './catalog-watch.js';
+import { keywordWatch } from './keyword-watch.js';
 
 export const strategies = {
   'text-match': textMatch,
@@ -12,4 +13,5 @@ export const strategies = {
   'shopify-json': shopifyJson,
   'magento-graphql': magentoGraphql,
   'catalog-watch': catalogWatch,
+  'keyword-watch': keywordWatch,
 } as const;

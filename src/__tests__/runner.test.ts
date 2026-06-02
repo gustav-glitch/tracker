@@ -29,6 +29,7 @@ const shopifyTracker = (id: string, enabled = true): Config['trackers'][number] 
   with: {},
   enabled,
   cooldownMinutes: 360,
+  fetchMode: 'http' as const,
 });
 
 describe('runChecks', () => {
