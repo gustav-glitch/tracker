@@ -51,7 +51,7 @@ export const MagentoGraphqlSchema = BaseSchema.extend({
 export const CatalogWatchSchema = BaseSchema.extend({
   strategy: z.literal('catalog-watch'),
   with: z.object({
-    type: z.enum(['shopify', 'html']),
+    type: z.enum(['shopify', 'html', 'sitemap']),
     // html only: regex to extract product identifiers from page
     itemPattern: z.string().optional(),
   }),

@@ -608,6 +608,8 @@ const HTML_CATALOG_PATTERNS = {
   'elkjop.no': '/product/([a-zA-Z0-9-]{5,})',
   'power.no': '/product/([a-zA-Z0-9-]{5,})',
 };
+// Sites that need sitemap-based catalog watching (JS-rendered, no product links in HTML)
+const SITEMAP_DOMAINS = ['sprell.no'];
 
 function catalogAutoDetect(url) {
   const badge = document.getElementById('cf-detected');
@@ -625,6 +627,14 @@ function catalogAutoDetect(url) {
       document.getElementById('cf-type').value = 'shopify';
       document.getElementById('cf-pattern').value = '';
       badge.style.display = 'block'; badge.textContent = '✓ Shopify — watches products.json for new listings';
+      return;
+    }
+    if (SITEMAP_DOMAINS.some(d => host.includes(d))) {
+      document.getElementById('cf-type').value = 'sitemap';
+      // use the path segment (e.g. "pokemon") as the filter pattern
+      const pathSegment = u.pathname.split('/').filter(Boolean).pop() || '';
+      document.getElementById('cf-pattern').value = pathSegment;
+      badge.style.display = 'block'; badge.textContent = '✓ JS-rendered store — watching sitemap for new listings';
       return;
     }
     const pattern = Object.entries(HTML_CATALOG_PATTERNS).find(([d]) => host.includes(d));

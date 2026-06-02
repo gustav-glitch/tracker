@@ -204,5 +204,5 @@ trackers:
     enabled: true
     strategy: catalog-watch
     with:
-      type: html
-      itemPattern: /produkt(?:er)?/([a-zA-Z0-9-]{5,})
+      type: sitemap
+      itemPattern: pokemon

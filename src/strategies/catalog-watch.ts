@@ -21,6 +21,23 @@ export const catalogWatch: Strategy<CatalogWatchConfig['with']> = {
       } catch (err) {
         return { signal: 'unknown', evidence: `fetch failed: ${err instanceof Error ? err.message : String(err)}` };
       }
+    } else if (config.type === 'sitemap') {
+      // sitemap mode: fetch sitemap.xml and filter by itemPattern
+      const base = new URL(url);
+      const sitemapUrl = `${base.origin}/sitemap.xml`;
+      try {
+        const res = await fetchFn(sitemapUrl, { headers: { accept: 'application/xml, text/xml' } });
+        const xml = await res.text();
+        const rawPattern = config.itemPattern ?? base.pathname.replace(/^\//, '');
+        const re = new RegExp(`<loc>(https?://[^<]+)</loc>`, 'gi');
+        const allUrls = [...xml.matchAll(re)].map((m) => m[1]).filter((m): m is string => !!m);
+        // Normalize both URL and pattern: decode, lowercase, strip diacritics so "pokémon" matches "pokemon"
+        const normalize = (s: string) => decodeURIComponent(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/gu, '');
+        const normPattern = normalize(rawPattern);
+        currentItems = [...new Set(allUrls.filter(u => normalize(u).includes(normPattern)))];
+      } catch (err) {
+        return { signal: 'unknown', evidence: `sitemap fetch failed: ${err instanceof Error ? err.message : String(err)}` };
+      }
     } else {
       // html mode: use itemPattern regex to extract items
       const pattern = config.itemPattern;
